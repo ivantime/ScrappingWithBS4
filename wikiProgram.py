@@ -24,7 +24,7 @@ for item in lister1:
         lister.append(item)
 
 def sleepingNow():
-    randSeconds = random.randint(1, 600)
+    randSeconds = random.randint(1, 30)
     print("\n\nzzzzz Sleeping for ",randSeconds," sec(s)")
     time.sleep(randSeconds)
     print("ooooo Awake Now")

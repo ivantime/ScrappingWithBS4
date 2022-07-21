@@ -1,4 +1,4 @@
-# http-localhost-8888-notebooks-Desktop-ScrappingWithBS4
+#Web Crawler
 
 <br>
 <br>
@@ -8,6 +8,7 @@
 <li>Scrapped URLs from Search Page (eg. https://en.wikipedia.org/w/index.php?search=how+to+build+computers)</li>
 <li>Scrapped Main Title and Content from Wiki Page (eg. https://en.wikipedia.org/wiki/Computer)</li>
 <li>Combined 20 Keywords into Combinations of up to 20 Keywords into a Search Query (to get Webpage as Wiki Page or Wiki Search Result)</li>
+<li>Random Delay of (1 sec to 30 secs) between Requests</li>
 </ul>
 <br>
 <br>
