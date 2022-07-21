@@ -100,10 +100,6 @@ def getLinksFromSearch(lister,index):
                 contentTitle = job_elements.text
 
                 if ("Search results" in job_elements.text):
-                    pass
-                
-                
-                
                 
                     print("Page is Wiki Search Page: "+URL)
                     #returned page is a search result page with multiple wiki pages
@@ -118,19 +114,18 @@ def getLinksFromSearch(lister,index):
                                 found = True
 
                         if (found==False):
-                            sleepingNow()
                             contentTxt = ""
-                            
+
                             #if using Keyword Search
+                            sleepingNow()
                             connectPassed=True
                             try:
-                                page = requests.get(URL)
+                                page = requests.get(url)
                             except:
                                 connectPassed=False
 
 
                             if (connectPassed == True):
-                                page = requests.get(url)
                                 soup = BeautifulSoup(page.content, "html.parser")
                                 job_elements = soup.find("h1",{"id":"firstHeading"})
                                 contentTitle = job_elements.text
@@ -140,18 +135,80 @@ def getLinksFromSearch(lister,index):
                                         contentTxt = contentTxt + item.text
                                     except:
                                         pass
+
                                 print("URL: "+page.url)
                                 print("TITLE~\n"+contentTitle)
                                 print("content~\n"+contentTxt)
 
                                 addedJson[page.url]={"title":contentTitle,"content":contentTxt}
                                 print("***Added URL:", page.url)
+
+                                ####################################
+                                #Get 2nd Deep Link from Main Seed
+                                potentialLinks = soup.find("div",{"id":"mw-content-text"}).find_all("a", href=True)
+                                for link in potentialLinks:
+                                    currLink = link['href']
+                                    failed = False
+
+                                    if currLink[0] == "#":
+                                        failed = True
+
+
+                                    #if URL is not a reference within the Current Wiki Page
+                                    if (failed == False):
+                                        #Check if URL is in Store
+                                        for index,item in enumerate(wikiArray):
+                                            if (currLink in addedJson):
+                                                failed = True
+                                            jsonData = wikiArray[index]
+                                            for key1 in jsonData.keys():
+                                                if key1 in currLink:
+                                                    failed = True
+                                    if ("/wiki/" in currLink and "wikipedia.org" not in currLink):
+                                        currLink = "https://en.wikipedia.org" + currLink
+
+                                    if (("search=" in currLink or "wiki/File:" in currLink) and "wikipedia" in currLink):
+                                        print("Potential New Discovered URL is a Wiki File/Search (not adding):   "+currLink)
+                                    elif (failed==False and "wikipedia" in currLink):
+                                        contentTxt = ""
+
+                                        #if using Keyword Search
+                                        sleepingNow()
+                                        connectPassed=True
+                                        try:
+                                            page = requests.get(currLink)
+                                        except:
+                                            connectPassed=False
+
+                                        if (connectPassed == True):
+                                            soup = BeautifulSoup(page.content, "html.parser")
+                                            job_elements = soup.find("h1",{"id":"firstHeading"})
+                                            contentTitle = job_elements.text
+                                            job_elements = soup.find("div",{"id":"mw-content-text"}).find_all()
+                                            for item in job_elements:
+                                                try:
+                                                    contentTxt = contentTxt + item.text
+                                                except:
+                                                    pass
+
+                                            print("URL: "+page.url)
+                                            print("TITLE~\n"+contentTitle)
+                                            print("content~\n"+contentTxt)
+
+                                            new1stDiscoveredURLs[page.url]={"title":contentTitle,"content":contentTxt}
+                                            print("***Added URL:", page.url)
+
+                                        else:
+                                            print("cannot connect to URL:"+currLink)
+                                    else:
+                                        print("Potential New Discovered URL found in Store (not adding):   "+currLink)
+
+                                    print("\n\nCurrently at Main Seed (Depth 2):"+str(indexCurr+1)," of ",len(lister),"\n| Main Seed Link:"+URL)  
+
                             else:
-                                print("cannot connect to URL:"+URL)
+                                print("cannot connect to URL:"+url)
                         else:
                             print("duplicated URL found in Store (not adding):   ",url)
-
-                        print("\n\nCurrently at Main Seed:"+str(indexCurr+1)," of ",len(lister),"\n| Main Seed Link:"+URL)
     
     
                 else:
@@ -199,10 +256,6 @@ def getLinksFromSearch(lister,index):
                                 currLink = link['href']
                                 failed = False
 
-        #                         try:
-        #                             currLink = currLink.split(".")[0]
-        #                         except:
-        #                             pass
 
                                 if currLink[0] == "#":
                                     failed = True
@@ -252,69 +305,6 @@ def getLinksFromSearch(lister,index):
                                         new1stDiscoveredURLs[page.url]={"title":contentTitle,"content":contentTxt}
                                         print("***Added URL:", page.url)
 
-                                        ####################################
-                                        #Get 3rd Deep Link from Main Seed
-#                                         potentialLinks = soup.find("div",{"id":"mw-content-text"}).find_all("a", href=True)
-#                                         for link in potentialLinks:
-#                                             currLink = link['href']
-#                                             failed = False
-
-#                                             if currLink[0] == "#":
-#                                                 failed = True
-
-#                                             #if URL is not a reference within the Current Wiki Page
-#                                             if (failed == False):
-#                                                 #Check if URL is in Store
-#                                                 for index,item in enumerate(wikiArray):
-#                                                     if (currLink in addedJson):
-#                                                         failed = True
-#                                                     if (currLink in new1stDiscoveredURLs):
-#                                                         failed = True
-#                                                     jsonData = wikiArray[index]
-#                                                     for key1 in jsonData.keys():
-#                                                         if key1 in currLink:
-#                                                             failed = True
-
-#                                             if ("/wiki/" in currLink and "wikipedia.org" not in currLink):
-#                                                 currLink = "https://en.wikipedia.org" + currLink
-
-#                                             if (("search=" in currLink or "wiki/File:" in currLink) and "wikipedia" in currLink):
-#                                                 print("Potential New Discovered URL is a Wiki File/Search (not adding):   "+currLink)
-#                                             elif (failed==False and "wikipedia" in currLink):
-#                                                 contentTxt = ""
-                                                
-#                                                 #if using Keyword Search
-#                                                 sleepingNow(5)
-#                                                 connectPassed=True
-#                                                 try:
-#                                                     page = requests.get(currLink)
-#                                                 except:
-#                                                     connectPassed=False
-#                                                 if (connectPassed == True):
-#                                                     soup = BeautifulSoup(page.content, "html.parser")
-#                                                     job_elements = soup.find("h1",{"id":"firstHeading"})
-#                                                     contentTitle = job_elements.text
-#                                                     job_elements = soup.find("div",{"id":"mw-content-text"}).find_all()
-#                                                     for item in job_elements:
-#                                                         try:
-#                                                             contentTxt = contentTxt + item.text
-#                                                         except:
-#                                                             pass
-
-#                                                     print("URL: "+page.url)
-#                                                     print("TITLE~\n"+contentTitle)
-#                                                     print("content~\n"+contentTxt)
-
-#                                                     new2ndDiscoveredURLs[page.url]={"title":contentTitle,"content":contentTxt}
-#                                                     print("***Added URL:", page.url)
-                                                
-#                                                 else:
-#                                                     print("cannot connect to URL:"+URL)
-#                                             else:
-#                                                 print("Potential New Discovered URL found in Store (not adding):   "+currLink)
-
-#                                             print("\n\nCurrently at Main Seed (Depth 3):"+str(indexCurr+1)," of ",len(lister),"\n| Main Seed Link:"+URL)  
-                                    
                                     else:
                                         print("cannot connect to URL:"+URL)
                                 else:
@@ -369,40 +359,32 @@ newArray =[]
 getLinksFromSearch(lister,len(lister)-1)
 
 
-#Flow:
+#Crawler Flow:
 '''
-Go through List of keywords>get URL from Wiki Search> EITHER: 
-##########(1) 
-[[Depth 1]]
-Wiki Search Returns Wiki Page (Not Search Page):
-Crawl Wiki Page for Title and Content>
+    Go through List of keywords>get URL from Wiki Search> EITHER: 
+    ##########(1) 
+    [[Depth 1]]
+    Wiki Search Returns Wiki Page (Not Search Page):
+    Crawl Wiki Page for Title and Content>
 
-[[Depth 2]]
-Get newly Discovered Links in Wiki Page (known as '2nd Deep Layer')>
-Crawl Wiki Page of newly Discovered Links (in '2nd Deep Layer') for Title and Content>
+    [[Depth 2]]
+    Get newly Discovered Links in Wiki Page (known as '2nd Deep Layer')>
+    Crawl Wiki Page of newly Discovered Links (in '2nd Deep Layer') for Title and Content>
 
-##########[[END for (1)]]
-
-
-
-
-##########(2) 
-Wiki Search Returns Wiki Search Page LIST
-[[Depth 1]]
-Wiki Search Returns Wiki Page (Not Search Page):
-Crawl Wiki Page for Title and Content>
-
-[[Depth 2]]
-Get newly Discovered Links in Wiki Page (known as '2nd Deep Layer')>
-Crawl Wiki Page of newly Discovered Links (in '2nd Deep Layer') for Title and Content>
+    ##########[[END for (1)]]
 
 
 
-##########[[END for (2)]]
+
+    ##########(2) 
+    Wiki Search Returns Wiki Search Page LIST
+    [[Depth 1]]
+    Wiki Search Returns Wiki Page (Not Search Page):
+    Crawl Wiki Page for Title and Content>
+
+    [[Depth 2]]
+    Get newly Discovered Links in Wiki Page (known as '2nd Deep Layer')>
+    Crawl Wiki Page of newly Discovered Links (in '2nd Deep Layer') for Title and Content>
+    ##########[[END for (2)]]
 
 '''
-
-
-#[[Depth 3]]
-# Get newly Discovered Links in Wiki Page (known as '3rd Deep Layer')>
-# Crawl Wiki Page of newly Discovered Links (in '3rd Deep Layer') for Title and Content
